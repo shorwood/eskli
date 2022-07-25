@@ -1,7 +1,7 @@
 /**
  * Parse a command line option and return it's object representation.
- * @param {string} option The option to parse.
- * @param {string} value The value of the option.
+ * @param option The option to parse.
+ * @param value The value of the option.
  * @returns The object representation of the option.
  * @example
  * parseOption('-f') // returns { f: true }
@@ -9,7 +9,7 @@
  * parseOption('--foo', 'bar') // returns { foo: 'bar' }
  * parseOption('--foo.bar', 'baz') // returns { foo: { bar: 'baz' } }
  */
-export const parseOption = /** @__PURE__ */ <T extends Record<string, any>>(option: string, value?: string): T => {
+export const parseOption = <T extends Record<string, any>>(option: string, value?: string): T => {
   const result: Record<string, any> = {}
 
   // --- If the option is a flag or a group of flags, set it/them to true.

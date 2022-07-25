@@ -1,5 +1,5 @@
 # @eskli/api
 
-- Generate service with Express/Koa/Nitro
-- Generate Swagger file with JSDoc
+- Generate http service with Express/Koa/Nitro
+- Generate Swagger from metadata
 - Configurable with eskli.config.ts

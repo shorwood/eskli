@@ -8,3 +8,5 @@ exports.add = (
   /** @type {string | number} */ a,
   /** @type {string | number} */ b,
 ) => +a + +b
+
+module.exports.add2 = (a, b) => +a + +b

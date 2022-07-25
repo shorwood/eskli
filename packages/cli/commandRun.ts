@@ -1,5 +1,4 @@
 /* eslint-disable new-cap */
-import { tries } from '@eskli/core'
 import { stringify } from 'yaml'
 
 /**
@@ -16,11 +15,13 @@ export const commandRun = async(command: Function, parameters: string[], options
     : [...parameters]
 
   // --- Call the command.
-  let output = await tries(
-    () => command(...commandArguments),
+  let output = command.toString().startsWith('class')
     // @ts-expect-error: ignore
-    () => new command(...commandArguments),
-  )
+    ? new command(...commandArguments)
+    : command(...commandArguments)
+
+  // --- If promise, wait for it to resolve.
+  if (output instanceof Promise) output = await output
 
   // --- Print nothing if the command returned nothing.
   if (output === undefined || output === null) return ''

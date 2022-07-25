@@ -8,8 +8,7 @@ import '@esbuild-kit/cjs-loader'
 import '@esbuild-kit/esm-loader'
 
 // --- Import dependencies
-import { argv, exit, stdout } from 'node:process'
-import { buildHelp, resolveImport } from '@eskli/core'
+import { argv, stdout } from 'node:process'
 import { parseArgv } from './parseArgv'
 import { commandResolve } from './commandResolve'
 import { commandRun } from './commandRun'
@@ -39,6 +38,7 @@ const main = async() => {
     stdout.write(output)
   }
 
+  // --- Exit with success.
   process.exitCode = 0
 }
 
@@ -46,5 +46,7 @@ const main = async() => {
 main().catch((error: Error) => {
   if (options.trace) stdout.write(`${error.stack}\n`)
   else stdout.write(`${error.name}: ${error.message}\n`)
+
+  // --- Exit with error.
   process.exitCode = 1
 })

@@ -6,7 +6,7 @@ import { RollupOptions, rollup } from 'rollup'
 import rollupDts from 'rollup-plugin-dts'
 import rollupTypescript from '@rollup/plugin-typescript'
 import { resolveDependencies } from './resolveDependencies'
-import { resolveFrom } from './resolveFrom'
+import { resolveContext } from './resolveContext'
 import { resolveImport } from './resolveImport'
 
 export type BuildBundleOptions =
@@ -31,7 +31,7 @@ export const buildBundle = async(entryPoint?: string, options: BuildBundleOption
       target: `node${process.versions.node}`,
       bundle: true,
       write: false,
-      tsconfig: resolveFrom('tsconfig.json', entryPoint),
+      tsconfig: resolveContext('tsconfig.json', entryPoint),
     })
 
     // --- Return the bundle content.s
@@ -45,7 +45,7 @@ export const buildBundle = async(entryPoint?: string, options: BuildBundleOption
       checkJs: false,
       noImplicitAny: false,
       allowUnreachableCode: true,
-      tsconfig: resolveFrom('tsconfig.json', entryPoint),
+      tsconfig: resolveContext('tsconfig.json', entryPoint),
     }
 
     // @ts-expect-error: ignore
@@ -73,7 +73,7 @@ export const buildBundle = async(entryPoint?: string, options: BuildBundleOption
   else {
     // --- Try to find a declaration file.
     try {
-      const packageJsonPath = resolveFrom('package.json', entryPoint) as string
+      const packageJsonPath = resolveContext('package.json', entryPoint) as string
       const packageJsonContent = await readFile(packageJsonPath, 'utf8')
       const packageJson = JSON.parse(packageJsonContent)
       const packagePath = dirname(packageJsonPath)

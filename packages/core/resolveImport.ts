@@ -4,12 +4,12 @@ import { tries } from './tries'
 
 /**
  * Resolve the absolute path of an import.
- * @param {string} importPath The import path.
- * @param {string} [from] The base path.
- * @returns {string} If the import was found, returns it's absolute path.
- * @throws {Error} If the import was not found.
+ * @param importPath The import path.
+ * @param from The base path.
+ * @returns If the import was found, returns it's absolute path.
+ * @throws If the import was not found.
  */
-export const resolveImport = (importPath?: string, from: string = cwd()): string => {
+export const resolveImport = (importPath: string, from: string = cwd()): string => {
   if (!importPath) throw new Error('[eskli:resolveImport] Missing import path.')
 
   // --- Try to resolve import's absolute path.
@@ -21,7 +21,7 @@ export const resolveImport = (importPath?: string, from: string = cwd()): string
   )
 
   // --- Throw if the import was not found.
-  if (!resolvedPath) throw new Error(`[eskli:resolveImport] Import "${importPath}" not found.`)
+  if (!resolvedPath) throw new Error(`[eskli:resolveImport] Import "${importPath}" not found in "${from}".`)
 
   // --- Return the absolute path.
   return resolvedPath

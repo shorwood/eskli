@@ -1,68 +1,56 @@
-import { buildBundle } from './buildBundle'
-import { resolveImport } from './resolveImport'
+import { MetadataLayer } from './buildMetadata'
+
+const formatCommand = (command: MetadataLayer) => {
+  // --- Extract the command name.
+  const name = command.name ?? 'default'
+
+  // Convert markdown hyperlinks to Terminal hyperlinks
+  const description = command.description
+    ? command.description
+
+      // --- Convert markdown hyperlinks to Terminal hyperlinks.
+      .replace(/\[(.+?)]\((.+?)\)/g, '\u001B]8;;$2\u001B\\$1\u001B]8;;\u001B\\')
+
+      // --- Clamp the description to 80 characters.
+      .replace(/.{1,80}(?:\s|$)/g, '$&')
+
+      // --- Bold and color the description.
+      .replace(/`(.+?)`/g, '\u001B[1m\u001B[32m$1\u001B[39m\u001B[22m')
+
+      // --- Remove newlines.
+      .replace(/\n+/g, ' ')
+      .split(/[,.;] +/g)
+      .shift()
+    : ''
+
+  // --- Extract the command usage.
+  return `  ${name.padEnd(24)} ${description}`
+}
 
 /**
- * Build CLI commentumentation for a given entry point.
- * @param {string} entryPoint The entry point.
+ * Build CLI documentation from a `MetadataLayer`.
+ * @param metadata The metadata layer.
+ * @returns The CLI documentation.
  */
-export const buildHelp = async(entryPoint?: string) => {
-  entryPoint = resolveImport(entryPoint)
+export const buildHelp = (metadata: MetadataLayer) => {
+  const name = metadata.name
+  const description = metadata.description
 
-  // --- Get the declaration file.
-  const dtsContent = await buildBundle(entryPoint)
-  const comments = [...dtsContent.matchAll(/\/\*\*\s*(.+?)\s*\*\/\s*(.+?)\s*\n/gs)]
+  const categoriesAll = metadata.children.map(command => command.category)
+  const categories = [...new Set(categoriesAll)]
 
-  // --- Parse the commentumentation.
-  const helpObjects = comments.map(([, comment, declaration]) => {
-    comment = comment.replace(/^ *\* */gm, '')
-
-    // --- Extract the description.
-    const description = comment
-      .slice(0, comment.indexOf('@'))
-      .replace(/\n+/g, ' ')
-      .trim()
-
-    // --- Extract the name from the declaration.
-    const name = declaration.match(/(var +|const +|function +|exports.|module.exports.)(\w+)/)?.[2]
-    const category = comment.match(/@category (\w+)/)?.[1] ?? 'Commands'
-
-    // --- Parse the parameters.
-    const parameters = comment
-      .split('\n')
-      .filter(line => line.startsWith('@param'))
-      .map((line) => {
-        // --- Extract the parameters
-        const [, type, name, defaultName, defaultValue, description]
-        = line.match(/@param\s+(?:{(\w+)}\s+)?(?:(\w+)|\[(\w+?)(?:=(\w+?))?])\s+(.+)/) ?? []
-
-        // --- Return the parameter
-        return {
-          type,
-          category,
-          name: name ?? defaultName,
-          defaultValue,
-          description,
-          isOptional: !!defaultName || !!defaultValue,
-        }
-      })
-
-    const usageParameters = parameters.map((parameter) => {
-      const name = parameter.name?.toUpperCase()
-      const type = parameter.type?.toUpperCase()
-      const defaultValue = parameter.defaultValue
-
-      let parameterUsage = name
-
-      if (type) parameterUsage = `${type}:${parameterUsage}`
-      if (defaultValue) parameterUsage = `[${parameterUsage}=${defaultValue}]`
-
-      return parameterUsage
-    }).join(' ')
-
-    // --- Return the help object
-    return { name, description, parameters, usageParameters }
+  const commands = categories.map((category) => {
+    const commands = metadata.children.filter(command => command.category === category)
+    const commandsFormatted = commands.map(formatCommand).join('\n')
+    return `${category ?? 'Commands'}:\n${commandsFormatted}`
   })
 
-  // --- Return the help objects
-  return helpObjects
+  // --- Build the help text
+  return [
+    `Usage: ${name} [OPTIONS] COMMAND [ARGS]...`,
+    description,
+    ...commands,
+  ]
+    .filter(Boolean)
+    .join('\n\n')
 }

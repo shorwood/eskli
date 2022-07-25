@@ -26,10 +26,12 @@ export interface ParseArgvReturnType<T extends Record<string, any> = any> {
 
 /**
  * Parses the command line argv.
- * @param {NodeJS.Process.argv} argv The command line argv.
- * @returns {ParseArgvReturnType} An object with options mapped to an object.
+ * @param argv The command line argv.
+ * @returns An object with options mapped to an object.
+ * @example
+ * parseArgv(['-f', '-bq', '--foo', 'bar', 'baz']) // returns { f: true, b: true, q: true, foo: 'bar' }
  */
-export const parseArgv = /** @__PURE__ */ <T extends Record<string, any>>(argv: NodeJS.Process['argv']): ParseArgvReturnType<T> => {
+export const parseArgv = <T extends Record<string, any>>(argv: NodeJS.Process['argv']): ParseArgvReturnType<T> => {
   const parsedArgs = [] as string[]
   const parsedOptions = {} as T
   const [nodePath, scriptPath, ...args] = argv
