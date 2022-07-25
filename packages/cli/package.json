@@ -1,0 +1,39 @@
+{
+  "name": "@eskli/cli",
+  "version": "1.0.0",
+  "description": "Wrap a codebase in a CLI seemlessly",
+  "sideEffects": true,
+  "type": "module",
+  "bin": {
+    "eskli": "bin/cli.cjs"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "LICENCE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@esbuild-kit/cjs-loader": "^2.3.1",
+    "@esbuild-kit/esm-loader": "^2.4.1",
+    "@eskli/core": "workspace:^1.0.0",
+    "@types/node": "^18.0.6",
+    "yaml": "^2.1.1"
+  }
+}

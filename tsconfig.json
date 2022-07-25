@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 16",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "esModuleInterop": true,
+    "strict": true,
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": [ "packages", "scripts", "__mocks__", "examples", "example/demo" ],
+  "exclude": [ "node_modules", "dist" ]
+}

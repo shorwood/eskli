@@ -1,0 +1,42 @@
+{
+  "name": "@eskli/core",
+  "version": "1.0.0",
+  "description": "Core utilities for `eskli`",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENCE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@microsoft/tsdoc": "^0.14.1",
+    "@types/node": "^18.0.6",
+    "esbuild": "^0.14.49",
+    "lodash-es": "^4.17.21",
+    "rollup-plugin-dts": "^4.2.2",
+    "ts-morph": "^15.1.0",
+    "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.3",
+    "lodash": "^4.17.21",
+    "rollup": "^2.77.0"
+  }
+}
