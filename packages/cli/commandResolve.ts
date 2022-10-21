@@ -1,4 +1,7 @@
 /* eslint-disable unicorn/prevent-abbreviations */
+import { createRequire } from 'node:module'
+import { cwd } from 'node:process'
+import { resolve } from 'node:path'
 import { getFileName, resolveImport, tries } from '@eskli/core'
 import { commandNames } from './commandNames'
 
@@ -18,16 +21,18 @@ export const commandResolve = (args: string[]) => {
   const commandName = parameters[0] || 'default'
   let commandModulePath: string | undefined
 
-  // --- Try to resolve the command module or global.
-  // --- If the command module is a global.
-  // --- If the command module is an import.
+  // --- Create the `require` function.
+  const currentPath = cwd()
+  const require = createRequire(currentPath)
+
+  // --- Try to resolve the targeted script path.
   const commandModule = tries(
     () => require(commandModulePath = resolveImport(commandModuleName)),
     () => (<any>globalThis)[commandModuleName],
   )
 
-  // --- Normalize the module.
-  if (!commandModule) throw new Error(`[eskli] Module "${commandModuleName}" not found.`)
+  // --- Make sure the script was found.
+  if (!commandModule) throw new Error(`[eskli] Module "${commandModuleName}" was not found`)
 
   // --- Find the command function.
   // --- If the command is a named export.
