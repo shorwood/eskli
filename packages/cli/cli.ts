@@ -9,7 +9,7 @@ import '@esbuild-kit/esm-loader'
 
 // --- Import dependencies
 import { argv, stdout } from 'node:process'
-import { parseArgv } from './parseArgv'
+import { parseArgv } from '@hsjm/shared'
 import { commandResolve } from './commandResolve'
 import { commandRun } from './commandRun'
 

@@ -1,65 +1,69 @@
-/* eslint-disable unicorn/prevent-abbreviations */
-import { createRequire } from 'node:module'
 import { cwd } from 'node:process'
-import { resolve } from 'node:path'
+import { createRequire } from 'node:module'
 import { getFileName, resolveImport, tries } from '@eskli/core'
 import { commandNames } from './commandNames'
 
 /**
  * Get the commanded module command of the `eskli` command.
- * @param {string[]} parameters The CLI parameters.
+ * @param cliArguments The CLI parameters.
  * @throws If the command is not found or is not a function.
  */
-export const commandResolve = (args: string[]) => {
-  if (args.length === 0) throw new Error('[eskli] Please specify a command.')
-  if (args.some(x => typeof x !== 'string')) throw new Error('[eskli] Parameters must be strings.')
+export const commandResolve = (cliArguments: string[] = []) => {
+  if (cliArguments.some(x => typeof x !== 'string')) throw new Error('[eskli] Parameters must be strings.')
 
   // --- Initialize variables.
-  const parameters = [...args]
-  const commandModuleName = parameters.shift() as string
-  const commandModuleFileName = getFileName(commandModuleName)
-  const commandName = parameters[0] || 'default'
+  const parameters = [...cliArguments]
+  const commandModuleId = parameters.shift() ?? 'index'
+  const commandModuleFileName = getFileName(commandModuleId)
+  const commandName = parameters[0]
   let commandModulePath: string | undefined
 
   // --- Create the `require` function.
   const currentPath = cwd()
   const require = createRequire(currentPath)
 
-  // --- Try to resolve the targeted script path.
+  // --- Resolve the targeted script's module:
+  // --- 1. In the globalThis namespace.
+  // --- 2. In the relative or package modules.
+  // --- 3. In the `index` module of the current directory.
   const commandModule = tries(
-    () => require(commandModulePath = resolveImport(commandModuleName)),
-    () => (<any>globalThis)[commandModuleName],
+    () => (<any>globalThis)[commandModuleId],
+    () => require(commandModulePath = resolveImport(commandModuleId)),
+    () => require(commandModulePath = resolveImport('index')),
   )
 
-  // --- Make sure the script was found.
-  if (!commandModule) throw new Error(`[eskli] Module "${commandModuleName}" was not found`)
+  // --- Make sure a module was found.
+  if (!commandModule) throw new Error(`[eskli] Module "${commandModuleId}" was not found`)
 
-  // --- Find the command function.
-  // --- If the command is a named export.
-  // --- If the commandModule exports a function named like it's commandModule id.
-  // --- If the command is a default export.
+  // --- Search for the targeted function:
+  // --- 1. In the named exports of the module.
+  // --- 2. In the export named like the file.
+  // --- 3. Fall back to the default export of the module.
+  // --- 4. Fall back to the module itself.
   const command = tries(
     () => commandModule[commandName],
     () => commandModule[commandModuleFileName],
+    () => commandModule.default,
     () => commandModule,
   )
 
-  // --- Throws if the command is not found.
+  // --- Throws if the target is not a function.
   if (typeof command !== 'function') {
     const commandNamesString = commandNames(commandModule).join(', ')
     const availablecommandString = commandNamesString.length > 0 ? `\nAvailable commands: ${commandNamesString}` : ''
-    throw new TypeError(`[eskli:resolvecommand] Invalid command "${commandName}" for module "${commandModuleName}".${availablecommandString}`)
+    throw new TypeError(`[eskli:resolvecommand] Invalid command "${commandName}" for module "${commandModuleId}".${availablecommandString}`)
   }
 
-  // --- Remove the command name from the parameters.
-  if (command.name !== commandModuleFileName) parameters.shift()
+  // --- Remove or add parameters.
+  if (command.name === commandModuleFileName) parameters.shift()
+  if (command === commandModule.default) parameters.unshift(commandModuleId)
 
   // --- Return the command.
   return {
     command,
     commandName,
     commandModule,
-    commandModuleName,
+    commandModuleId,
     commandModulePath,
     commandModuleFileName,
     parameters,
