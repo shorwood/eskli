@@ -1,21 +1,22 @@
 import { cwd } from 'node:process'
 import { createRequire } from 'node:module'
-import { getFileName, resolveImport, tries } from '@eskli/core'
+import { getFileName, noop, resolveImport, tries } from '@hsjm/shared'
 import { commandNames } from './commandNames'
 
 /**
- * Get the commanded module command of the `eskli` command.
- * @param cliArguments The CLI parameters.
+ * Resolve the target function of the `eskli` command.
+ * @param argvParameters The CLI parameters.
  * @throws If the command is not found or is not a function.
  */
-export const commandResolve = (cliArguments: string[] = []) => {
-  if (cliArguments.some(x => typeof x !== 'string')) throw new Error('[eskli] Parameters must be strings.')
+export const commandResolve = (argvParameters: string[] = []) => {
+  if (argvParameters.some(x => typeof x !== 'string'))
+    throw new Error('Parameters must be strings.')
 
   // --- Initialize variables.
-  const parameters = [...cliArguments]
-  const commandModuleId = parameters.shift() ?? 'index'
+  const parameters = [...argvParameters]
+  const commandModuleId = parameters[0] ?? 'index'
   const commandModuleFileName = getFileName(commandModuleId)
-  const commandName = parameters[0]
+  const commandName = parameters[1]
   let commandModulePath: string | undefined
 
   // --- Create the `require` function.
@@ -33,7 +34,7 @@ export const commandResolve = (cliArguments: string[] = []) => {
   )
 
   // --- Make sure a module was found.
-  if (!commandModule) throw new Error(`[eskli] Module "${commandModuleId}" was not found`)
+  if (!commandModule) throw new Error(`Module "${commandModuleId}" was not found`)
 
   // --- Search for the targeted function:
   // --- 1. In the named exports of the module.
@@ -51,12 +52,18 @@ export const commandResolve = (cliArguments: string[] = []) => {
   if (typeof command !== 'function') {
     const commandNamesString = commandNames(commandModule).join(', ')
     const availablecommandString = commandNamesString.length > 0 ? `\nAvailable commands: ${commandNamesString}` : ''
-    throw new TypeError(`[eskli:resolvecommand] Invalid command "${commandName}" for module "${commandModuleId}".${availablecommandString}`)
+    throw new TypeError(`Invalid command "${commandName}" for module "${commandModuleId}".${availablecommandString}`)
   }
 
-  // --- Remove or add parameters.
-  if (command.name === commandModuleFileName) parameters.shift()
-  if (command === commandModule.default) parameters.unshift(commandModuleId)
+  // --- Shift parameters if the first parameter is a module or file name.
+  if (parameters[0] === commandModuleId) parameters.shift()
+  else if (parameters[0] === commandModuleFileName) parameters.shift()
+
+  // --- Shift parameters if the second parameter is a command name.
+  if (command === commandModule.default) noop()
+  else if (parameters[0] in commandModule) parameters.shift()
+  else if (parameters[0] in globalThis) parameters.shift()
+  else if (parameters[0] === commandName) parameters.shift()
 
   // --- Return the command.
   return {
